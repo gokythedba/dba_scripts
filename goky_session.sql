@@ -275,7 +275,7 @@ select a.inst_id,a.group#,thread#,member,a.status,bytes/1024/1024 mb from gv$log
 select * from	v$logfile  order by type,2,1;
 
 --Bu da genel özel raporumuz: Standby redo log'lari da görmeni saglar. Logfile'in tipini görebiliyoruz: ONLINE vs STANDBY
-select type,count(distinct group#)"LOG_FILE#_WITHOUT_MULTIPLEX" from	v$logfile group by type order by type;
+select type,inst_id,count(distinct group#)"LOG_FILE#_WITHOUT_MULTIPLEX" from	gv$logfile group by type,inst_id order by type,inst_id,3;
  
  --Saatlik kaç GB arþiv üremiþ: (RAC ortamda gv ayrýmý ?)
 select coalesce(to_char (first_time, 'yyyy-mm-dd-hh24'),'SUM')"SAAT",sum(round(blocks*block_size/1024/1024/1024,0)) "REDO_SIZE_GB" from v$archived_log 
