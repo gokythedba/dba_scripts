@@ -27,6 +27,11 @@ CONCAT ('%',CAST ((CAST (total_mb / 1024 - free_mb / 1024 AS INT) * 100) / CAST 
 --Legacy diskgroup historik yapımız:
 select * from	dbmain.DISKGROUP_USAGE where 1=1	 and upper(disk_group) like '%DATA%' order by 1 desc,used_gb desc;
 
+--3 aylık periyotla 1 yıllık disk değişimi:
+select 'DÜN' "NE_ZAMAN",a.* from	dbmain.DISKGROUP_USAGE a where 1=1	 and upper(disk_group) like '%DATA%' and trunc(report_date)=trunc(sysdate-1) union all select '3_AY' "NE_ZAMAN",a.* from	dbmain.DISKGROUP_USAGE a where 1=1	 and upper(disk_group) like '%DATA%' and trunc(report_date)=trunc(sysdate-93)
+union all select '6_AY' "NE_ZAMAN",a.* from	dbmain.DISKGROUP_USAGE a where 1=1	 and upper(disk_group) like '%DATA%' and trunc(report_date)=trunc(sysdate-185) union all select '9_AY' "NE_ZAMAN",a.* from	dbmain.DISKGROUP_USAGE a where 1=1	 and upper(disk_group) like '%DATA%' and trunc(report_date)=trunc(sysdate-276)
+union all select '12_AY' "NE_ZAMAN",a.* from	dbmain.DISKGROUP_USAGE a where 1=1	 and upper(disk_group) like '%DATA%' and trunc(report_date)=trunc(sysdate-367)   order by 2 desc;
+
 --DB Size: Used Size ve Allocated Size:
 select (select DB_UNIQUE_NAME from v$database)"DB_NAME_GB",substr(rtime, 1, 10)"DATE",round((sum(tablespace_size) * 8192) / 1024 / 1024 / 1024)"USED_DB_SIZE_GB",round((sum(tablespace_usedsize) * 8192) / 1024 / 1024 / 1024)"ALLOCATED_DB_SIZE_GB"
 from DBA_HIST_TBSPC_SPACE_USAGE where substr(rtime, 12,5)='00:00' group by substr(rtime, 1, 10) order by substr(rtime, 1, 10) desc;
