@@ -280,7 +280,12 @@ select type,inst_id,count(distinct group#)"LOG_FILE#_WITHOUT_MULTIPLEX" from	gv$
  --Saatlik kaç GB arþiv üremiþ: (RAC ortamda gv ayrýmý ?)
 select coalesce(to_char (first_time, 'yyyy-mm-dd-hh24'),'SUM')"SAAT",sum(round(blocks*block_size/1024/1024/1024,0)) "REDO_SIZE_GB" from v$archived_log 
 where first_time>=trunc(sysdate) and dest_id=1  group by rollup(to_char (first_time, 'yyyy-mm-dd-hh24')) order by 1 desc;
- 
+
+--Total redo log size. REDO grubu olusturup buraya tasiyacagin zaman bir miktar buffer ekleyerek talep edebilirsin.
+select cast(sum(size_mb)/1024 as int) "GB_REDO_SIZE_BUFFER_EKLE" from (
+SELECT a.GROUP#,a.THREAD#,a.SEQUENCE#,a.ARCHIVED,a.STATUS,b.MEMBER AS REDOLOG_FILE_NAME,(a.BYTES/1024/1024) AS SIZE_MB
+FROM v$log a JOIN v$logfile b ON a.Group#=b.Group# ORDER BY a.GROUP#);
+
 --Who is generating redo logs now?
 select b.inst_id, lpad((b.SID || ',' || lpad(b.serial#,5)),11) sid_serial, b.username, machine, b.osuser, b.status, a.redo_mb from (select n.inst_id, sid, round(value/1024/1024) redo_mb from gv$statname n, gv$sesstat s
 where n.inst_id=s.inst_id and n.name = 'redo size' and s.statistic# = n.statistic# order by value desc) a, gv$session b where b.inst_id=a.inst_id and a.sid = b.sid and rownum <= 30 order by redo_mb desc;
